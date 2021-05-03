@@ -8,7 +8,7 @@ import os
 
 import yaml
 
-from util import tools
+from utils import tools
 from helper import AncientDataset, ModelConfiguration
 from trainers import SingleDecoderTrainer, PairedDecoderTrainer
 import pandas as pd
