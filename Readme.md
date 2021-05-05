@@ -1,5 +1,5 @@
 # Ancient Discovery
-This project includes experiment in paper: _A Novel Perspective to Decipher Oracle Bone Inscriptions: Artificial Intelligence_
+This project includes experiment in paper: Deciphering Ancient Chinese Oracle Bone Inscriptions using Case-Based Reasoning
 The aim of this project is to present a method to decipher unknown Oracle bone inscriptions by using deep learning model
 
 ### Requirements
