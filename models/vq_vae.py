@@ -2,6 +2,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from base import BaseModel
+
 
 class VectorQuantizer(nn.Module):
     """
@@ -64,7 +66,7 @@ class ResidualLayer(nn.Module):
         return input_ + self.res_block(input_)
 
 
-class VQVAE(nn.Module):
+class VQVAE(BaseModel):
 
     def __init__(self, in_channels: int = 3, embedding_dim: int = 32, num_embeddings: int = 512,
                  hidden_dims: list = None,  beta: float = 0.25, **kwargs) -> None:

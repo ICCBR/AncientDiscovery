@@ -1,6 +1,6 @@
 import torch
 import os
-from util import tools
+from utils import tools
 
 
 class Configuration:

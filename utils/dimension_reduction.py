@@ -1,10 +1,9 @@
-
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import numpy as np
 
-from util import tools
+from utils import tools
 
 
 def get_reduction_result(input_df=None):

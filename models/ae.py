@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui & Zhang Gechuan
-# @Time          : 2020/5/10 16:51
-# @Function      : This is the class of auto encoder class
-
-
 import torch
 import torch.nn as nn
 

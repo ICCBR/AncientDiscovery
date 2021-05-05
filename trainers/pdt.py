@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/4/28 17:45
-# @Function      : This is the class of paired decoder trainer
 from tqdm import tqdm
 
 from trainers.base_trainer import BaseTrainer
-from util import loss_helper, model_helper
+from utils import loss_helper, model_helper
 
 
 class PairedDecoderTrainer(BaseTrainer):

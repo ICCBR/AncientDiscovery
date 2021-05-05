@@ -1,10 +1,10 @@
-from util import tools
+from utils import tools
 import pandas as pd
 import numpy as np
 from sklearn.cluster import estimate_bandwidth, MeanShift
 
 
-def run_cluster(label, char_type, group_df, quantile=0.8, add_center=True):
+def run_cluster(label, group_df, quantile=0.8, add_center=True):
     group_df = group_df.reset_index(drop=True)
     # group images data by label
     feature = np.array(group_df.loc[:, "feature"])
@@ -22,19 +22,20 @@ def run_cluster(label, char_type, group_df, quantile=0.8, add_center=True):
     if add_center:
         centers_df = pd.DataFrame({"feature": list(cluster_centers), "center": list(range(len(cluster_centers)))})
         centers_df["size"] = centers_df.center.apply(lambda p: sum(np.array(ms.labels_) == p))
-        centers_df["label"], centers_df["type"] = label, char_type
+        centers_df["label"] = label
         group_df = group_df.append(centers_df, ignore_index=True, sort=False)
     return group_df
 
 
-def get_cluster_output_df(input_df=None, add_center=True):
+def get_cluster_output_df(input_df=None, add_center=True, quantile=0.8):
     """
     get cluster result and store the result
     Args:
         input_df: A pandas data frame with columns “label", "type", "feature"
         add_center: Whether add center point to final results
+        quantile: should be between [0, 1] 0.5 means that the median of all pairwise distances is used.
 
-    Returns: A pandas data frame with columns “label", "type", "feature", "center", "size"
+    Returns: A pandas data frame with columns “label", "feature", "center", "size"
 
     """
     if input_df is None:
@@ -42,9 +43,8 @@ def get_cluster_output_df(input_df=None, add_center=True):
         return
     columns = input_df.columns
     output_df = pd.DataFrame(columns=columns)
-    for (label, char_type), group_df in input_df.groupby(["label", "type"]):
-        output_df = output_df.append(run_cluster(label, char_type, group_df, add_center=add_center), ignore_index=True,
-                                     sort=False)
+    for label, group_df in input_df.groupby(["label"]):
+        output_df = output_df.append(run_cluster(label, group_df, quantile=quantile, add_center=add_center),
+                                     ignore_index=True, sort=False)
     tools.print_log("shape of output after cluster: %s" % str(output_df.shape))
     return output_df
-

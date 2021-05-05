@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Zhang Gechuan
-# @Time          : 2020/8/5 10:52
-# @Function      : VanillaVAE With Paired Decoder
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

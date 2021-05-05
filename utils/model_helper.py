@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/4/28 1:48
-# @Function      : Some useful function of run models
 import pickle
 import torch
 import torch.nn as nn
-from util import tools, loss_helper
+from utils.tools import get_device
+from utils.loss_helper import vae_loss, beta_vae_loss
 import torch.nn.functional as F
 
 
-def run_batch(model, batch, core="AE", train=True, device=tools.get_device(), mse_loss=nn.MSELoss(reduction="sum"),
+def run_batch(model, batch, core="AE", train=True, device=get_device(), mse_loss=nn.MSELoss(reduction="sum"),
               num_iter=None, input_source=False):
     """
     Put a batch of data into models
@@ -64,19 +60,19 @@ def run_model(model, batch, core="AE", mse_loss=nn.MSELoss(reduction="sum"), inp
         if input_source:
             recon1, z1, mu1, log_var1 = model.reconstruct1(batch)
             g1, z = model.generate_source(batch)
-            recon_loss = loss_helper.vae_loss(recon1, batch, mu1, log_var1) + F.mse_loss(g1, batch, reduction='sum')
+            recon_loss = vae_loss(recon1, batch, mu1, log_var1) + F.mse_loss(g1, batch, reduction='sum')
             return z, recon_loss
         else:
             recon2, z2, mu2, log_var2 = model.reconstruct2(batch)
             g2, z = model.generate_target(batch)
-            recon_loss = loss_helper.vae_loss(recon2, batch, mu2, log_var2) + F.mse_loss(g2, batch, reduction='sum')
+            recon_loss = vae_loss(recon2, batch, mu2, log_var2) + F.mse_loss(g2, batch, reduction='sum')
             return z, recon_loss
     else:
         output, code, mu, logvar = model(batch)
         if num_iter is not None:
-            loss = loss_helper.beta_vae_loss(output, batch, mu, logvar, loss_type='H', num_iter=num_iter)
+            loss = beta_vae_loss(output, batch, mu, logvar, loss_type='H', num_iter=num_iter)
         else:
-            loss = loss_helper.vae_loss(output, batch, mu, logvar)
+            loss = vae_loss(output, batch, mu, logvar)
     return code, loss
 
 

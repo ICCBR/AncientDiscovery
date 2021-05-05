@@ -1,24 +1,19 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/5/13 13:57
-# @Function      : The class of Resnet vae
-
-
 # ---------------------- ResNet VAE ----------------------
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 
+from base import BaseModel
+
 res_size = 96  # ResNet image size
 
 
-class ResNet_VAE(nn.Module):
-    def __init__(self, fc_hidden1=1024, fc_hidden2=768, drop_p=0.3, CNN_embed_dim=128):
+class ResNet_VAE(BaseModel):
+    def __init__(self, fc_hidden1=1024, fc_hidden2=768, drop_p=0.3, latent_dim=128):
         super(ResNet_VAE, self).__init__()
 
-        self.fc_hidden1, self.fc_hidden2, self.CNN_embed_dim = fc_hidden1, fc_hidden2, CNN_embed_dim
+        self.fc_hidden1, self.fc_hidden2, self.CNN_embed_dim = fc_hidden1, fc_hidden2, latent_dim
         self.drop_p = drop_p
         # CNN architecture
         self.ch1, self.ch2, self.ch3, self.ch4 = 16, 32, 64, 128
@@ -28,7 +23,7 @@ class ResNet_VAE(nn.Module):
 
         # encoding components
         resnet = models.resnet18(pretrained=False)
-        resnet.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        resnet.conv1 = nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         modules = list(resnet.children())[:-1]  # delete the last fc layer.
         self.resnet = nn.Sequential(*modules)
         self.fc1 = nn.Linear(resnet.fc.in_features, self.fc_hidden1)

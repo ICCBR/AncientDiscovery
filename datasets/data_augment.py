@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/7/24 3:23
-# @Function      : expand dataset
 import os
 import math
 import shutil

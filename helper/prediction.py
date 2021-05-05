@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/7/25 20:18
-# @Function      : prediction class
 import math
 import os
 
@@ -10,7 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 from sklearn.neighbors import KNeighborsClassifier
-from util import cluster, model_helper
+from utils import cluster, model_helper
 
 
 class Prediction:
@@ -21,6 +16,7 @@ class Prediction:
         self.source_data, self.source_labels = source_data, source_labels
         self.batch_size, self.size, self.core, self.mode = batch_size, size, core, mode
         self.set_type, self.model = set_type, model
+        self.source_labels_mapping = []
 
     def __get_output_df(self, model, data, labels, i, input_source=True):
         data = torch.tensor(data[i * self.batch_size:(i + 1) * self.batch_size])
@@ -80,13 +76,17 @@ class Prediction:
         self.source_labels_mapping = source_labels_mapping
         return source_centers, source_labels_mapping
 
-    def get_classifier(self, with_cluster=False, source_outputs=pd.DataFrame(), source_paths=None):
+    def get_classifier(self, with_cluster=False, source_mode="category", source_outputs=pd.DataFrame(),
+                       source_paths=None):
         if source_outputs.empty:
             source_outputs = self.get_source_output(source_paths)
-        source_centers, source_labels_mapping = self._get_source(source_outputs, with_cluster)
+        if source_mode == "category":
+            source_centers, source_labels_mapping = self._get_source(source_outputs, with_cluster)
+        else:
+            source_centers, self.source_labels_mapping = source_outputs["feature"].tolist(), source_outputs["label"].tolist()
         source_centers = np.nan_to_num(source_centers)
         classifier = KNeighborsClassifier(n_neighbors=self.size)
-        classifier.fit(source_centers, source_labels_mapping)
+        classifier.fit(source_centers, self.source_labels_mapping)
         return classifier
 
     def set_model(self, model):

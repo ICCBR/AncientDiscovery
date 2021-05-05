@@ -1,29 +1,30 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/5/10 16:52
-# @Function      :
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from base import BaseModel
+
+
+def gelu(x):
+    return 0.5 * x * (1.0 + torch.erf(x / math.sqrt(2.0)))
 
 
 # ------------------------VanillaVAE----------------------------
-class VanillaVAE(nn.Module):
+class VanillaVAE(BaseModel):
     def __init__(self, in_channels=3, input_size=96, latent_dim=128, hidden_dims=5):
         super(VanillaVAE, self).__init__()
         self.latent_dim = latent_dim
         self.hidden_dims = [2**i for i in range(5, hidden_dims+5)] if hidden_dims > 1 else [128]
         self.decode_hidden_dims = [2**i for i in range(hidden_dims+4, 4, -1)] if hidden_dims > 1 else [128]
         self.output_size = input_size
+        self.image_size = input_size
 
         # Build Encoder
         modules = []
         channels = in_channels
         for h_dim in self.hidden_dims:
             layer = nn.Sequential(
-                nn.Conv2d(in_channels=channels, out_channels=h_dim, kernel_size=3, stride=2, padding=1),
+                nn.Conv2d(in_channels=channels, out_channels=h_dim, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
                 nn.BatchNorm2d(h_dim),
                 nn.ReLU()
             )
@@ -40,8 +41,8 @@ class VanillaVAE(nn.Module):
         self.decoder_input = nn.Linear(self.latent_dim, self.hidden_dims[-1] * self.output_size ** 2)
         for i in range(len(self.decode_hidden_dims) - 1):
             layer = nn.Sequential(
-                nn.ConvTranspose2d(self.decode_hidden_dims[i], self.decode_hidden_dims[i + 1], kernel_size=3, stride=2,
-                                   padding=1, output_padding=1),
+                nn.ConvTranspose2d(self.decode_hidden_dims[i], self.decode_hidden_dims[i + 1], kernel_size=(3, 3),
+                                   stride=(2, 2), padding=(1, 1), output_padding=(1, 1)),
                 nn.BatchNorm2d(self.decode_hidden_dims[i + 1]),
                 nn.ReLU()
             )
@@ -50,11 +51,11 @@ class VanillaVAE(nn.Module):
 
         self.decoder = nn.Sequential(*modules)
         self.final_layer = nn.Sequential(
-            nn.ConvTranspose2d(self.decode_hidden_dims[-1], self.decode_hidden_dims[-1], kernel_size=3, stride=2,
-                               padding=1, output_padding=1),
+            nn.ConvTranspose2d(self.decode_hidden_dims[-1], self.decode_hidden_dims[-1], kernel_size=(3, 3),
+                               stride=(2, 2), padding=(1, 1), output_padding=(1, 1)),
             nn.BatchNorm2d(self.decode_hidden_dims[-1]),
             nn.ReLU(),
-            nn.ConvTranspose2d(self.decode_hidden_dims[-1], out_channels=in_channels, kernel_size=3, padding=1),
+            nn.ConvTranspose2d(self.decode_hidden_dims[-1], out_channels=in_channels, kernel_size=(3, 3), padding=(1, 1)),
             nn.BatchNorm2d(in_channels),
             nn.Tanh()
         )
@@ -85,7 +86,7 @@ class VanillaVAE(nn.Module):
         result = result.view(-1, self.decode_hidden_dims[0], self.output_size, self.output_size)
         result = self.decoder(result)
         result = self.final_layer(result)
-        result = F.interpolate(result, size=(96, 96), mode='bilinear', align_corners=True)
+        result = F.interpolate(result, size=(self.image_size, self.image_size), mode='bilinear', align_corners=True)
         return result
 
     def reparameterize(self, mu, logvar):
@@ -103,4 +104,20 @@ class VanillaVAE(nn.Module):
     def forward(self, image):
         mu, log_var = self.encode(image)
         z = self.reparameterize(mu, log_var)
+        return self.decode(z), z, mu, log_var
+
+
+class VanillaVAEMMD(VanillaVAE):
+    def __init__(self, in_channels=3, input_size=96, latent_dim=128, hidden_dims=5):
+        super(VanillaVAEMMD, self).__init__(in_channels, input_size, latent_dim, hidden_dims)
+        self.mapping1 = nn.Linear(latent_dim, latent_dim * 2)
+        self.mapping2 = nn.Linear(latent_dim * 2, latent_dim)
+        self.activation = gelu
+        self.dropout = nn.Dropout(0.2)
+
+    def forward(self, image, img_from="source"):
+        mu, log_var = self.encode(image)
+        z = self.reparameterize(mu, log_var)
+        if img_from == "target":
+            z = self.mapping1(z)
         return self.decode(z), z, mu, log_var

@@ -1,14 +1,9 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/9/10 17:17
-# @Function      : Generic runner for SDS and PDS models
 import argparse
 import shutil
 
 from helper import AncientDataset, ModelConfiguration
 from trainers import SingleDecoderTrainer, PairedDecoderTrainer
-from util import tools
+from utils import tools
 
 
 def experiment(config_file, root_dir):

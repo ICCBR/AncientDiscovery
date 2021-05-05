@@ -2,13 +2,11 @@ import logging
 import math
 import os
 import zipfile
-import shutil
-from pathlib import Path
 
 import requests
 from tqdm import tqdm
 
-from util import tools
+from utils import tools
 
 log = logging.getLogger(__name__)
 dataset_url = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/ksk47h2hsh-2.zip"
@@ -79,4 +77,3 @@ def download_dataset(data_path):
     file_path = maybe_download(dataset_url, work_directory=data_path)
     unzip_file(file_path, data_path)
     unzip_file(os.path.join(data_path, "datasets.zip"), data_path)
-

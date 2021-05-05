@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui & Zhang Gechuan
-# @Time          : 2020/4/28 1:43
-# @Function      : The helper for loss calculation
 import torch
 import pandas as pd
 import torch.nn as nn
@@ -10,10 +5,14 @@ from helper.mmd import MMDLoss
 import torch.nn.functional as F
 
 
+def vq_loss(recon_x, x, vq_l):
+    MSE = F.mse_loss(recon_x, x, reduction='sum')
+    return MSE + vq_l
+
+
 def vae_loss(recon_x, x, mu, log_var):
     MSE = F.mse_loss(recon_x, x, reduction='sum')
-    # MSE = F.binary_cross_entropy(recon_x, x, reduction='sum')
-    KLD = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+    KLD = torch.sum(-0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp()))
     return MSE + KLD
 
 

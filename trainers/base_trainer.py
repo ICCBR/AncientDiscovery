@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/4/28 17:45
-# @Function      : This is the class of base trainer
 from abc import abstractmethod
 import torch
 import torch.optim as optim
 import os
-from util import tools
+from utils import tools
 from helper import ModelConfiguration, AncientDataset, Prediction
 
 

@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/5/6 16:06
-# @Function      : It defines the class of dataset
 import numpy as np
 import os
 import torch
@@ -10,7 +5,7 @@ import pandas as pd
 
 from datasets.dataset_manager import download_dataset
 from helper import ModelConfiguration
-from util import tools
+from utils import tools
 from torch.utils.data import DataLoader
 from helper.image_folder_with_paths import ImageFolderWithPaths
 
@@ -153,4 +148,3 @@ class AncientDataset:
             self.labels.extend([label for _ in range(len(df["data"]))])
             self.target_data.extend(df["data"])
             self.source_data.extend(source_df["data"][source_df["label"] == label])
-

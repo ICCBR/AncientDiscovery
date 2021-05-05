@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Organization  : BDIC
-# @Author        : Liu Dairui
-# @Time          : 2020/7/22 12:00
-# @Function      : This is the training process for 10-fold cross validation
 import argparse
 import os
 
@@ -41,12 +36,12 @@ if __name__ == "__main__":
     root = "../datasets/"
     parser.add_argument('--root', '-r', dest="root", metavar='TEXT', help='dataset root directory', default=root)
     args = parser.parse_args()
-    conf_paths = ["../configs/sds_jc.yaml"]
+    conf_paths = ["../configs/pds_jc.yaml"]
     for conf_path in conf_paths:
         # load configuration
         config = tools.load_config(conf_path)
-        saved_path = os.path.join("_".join(config["paired_chars"]), config["core"]+"_"+config["level"])
-        conf = ModelConfiguration(**config, saved_path=saved_path)
+        # saved_path = os.path.join("_".join(config["paired_chars"]), config["core"]+"_"+config["level"])
+        conf = ModelConfiguration(**config)
 
         tools.print_log("Task: " + "->".join(conf.paired_chars) + ", Core: " + conf.core)
 
@@ -58,31 +53,20 @@ if __name__ == "__main__":
             tools.make_dir("cross_dataset")
             create_cross_dataset(test_num, dataset.char_list, test_path, val_path)
 
-        char_lists_combination = pd.read_csv(val_path)
-        i = 0
-        for val_chars, train_chars in zip(char_lists_combination["val"], char_lists_combination["train"]):
-            if i not in test_nums:
-                # skip this time, if it has been evaluated
-                i += 1
-                continue
-            tools.print_log("Training number %s" % i)
-            conf.set_path(os.path.join(saved_path, "cross", str(i)))
-            config["saved_path"] = os.path.join(saved_path, "cross", str(i))
-            with open(conf.log_path + "/" + "config.yaml", "w") as w:
-                yaml.safe_dump(config, w)
-            dataset.split_dataset(train_chars=train_chars.split(","), val_chars=val_chars.split(","), batch_size=64)
+        char_lists = pd.read_csv(val_path)
+        test_chars = pd.read_csv(test_path)["test"].tolist()
+        train_chars = char_lists["val"][0].split(",") + char_lists["train"][0].split(",")
+        # conf.set_path(os.path.join(saved_path, "cross", str(i)))
+        # config["saved_path"] = os.path.join(saved_path, "cross", str(i))
+        with open(conf.log_path + "/" + "config.yaml", "w") as w:
+            yaml.safe_dump(config, w)
+        dataset.split_dataset(train_chars=train_chars, val_chars=test_chars, batch_size=64)
 
-            # load trainer
-            is_single = conf.strategy == "single"
-            trainer = SingleDecoderTrainer(conf, dataset) if is_single else PairedDecoderTrainer(conf, dataset)
-            if os.path.exists(conf.best_model_path):
-                trainer.resume_checkpoint(conf.best_model_path)
-                trainer.config = conf
-                trainer.optimizer = optim.Adam(trainer.model.parameters(), lr=conf.lr)
-            try:
-                trainer.train()
-            except:
-                i += 1
-                continue
-            char_lists_combination.loc[i, 'checked'] += 1
-            i += 1
+        # load trainer
+        is_single = conf.strategy == "single"
+        trainer = SingleDecoderTrainer(conf, dataset) if is_single else PairedDecoderTrainer(conf, dataset)
+        if os.path.exists(conf.best_model_path):
+            trainer.resume_checkpoint(conf.best_model_path)
+            trainer.config = conf
+            trainer.optimizer = optim.Adam(trainer.model.parameters(), lr=conf.lr)
+        trainer.train()
